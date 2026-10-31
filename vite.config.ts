@@ -1,14 +1,18 @@
 import { defineConfig } from "vite";
 
-export default defineConfig({
+// `vite build` makes the drop-in browser script for script tags and CDNs.
+// `vite build --mode lib` makes the ES module for bundlers, leaving dependencies to the bundler.
+export default defineConfig(({ mode }) => ({
   envPrefix: ["VITE_", "YVP_"],
   server: { host: true, allowedHosts: true },
-  build: {
-    lib: {
-      entry: "src/embed.ts",
-      name: "ScriptureInline",
-      formats: ["iife"],
-      fileName: () => "scripture-inline.js",
-    },
-  },
-});
+  build:
+    mode === "lib"
+      ? {
+          emptyOutDir: false,
+          lib: { entry: "src/index.ts", formats: ["es"], fileName: () => "index.js" },
+          rolldownOptions: { external: [/^@youversion\//, "grab-bcv"] },
+        }
+      : {
+          lib: { entry: "src/embed.ts", name: "ScriptureInline", formats: ["iife"], fileName: () => "scripture-inline.js" },
+        },
+}));
