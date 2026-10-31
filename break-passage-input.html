@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Break: si-passage-input</title>
+    <!-- Dev-only stress page. The library build (vite.config.ts lib entry) never includes it. -->
+    <link rel="stylesheet" href="/src/demo.css" />
+    <script>
+      const systemDark = matchMedia("(prefers-color-scheme: dark)");
+      const followSystem = () => document.documentElement.classList.toggle("dark", systemDark.matches);
+      followSystem();
+      systemDark.addEventListener("change", followSystem);
+    </script>
+    <style>
+      /* Test chrome only, not the component. */
+      #cases { display: flex; flex-wrap: wrap; gap: 1.5rem; padding-bottom: 6rem; }
+      .case { box-sizing: border-box; min-height: 21rem; }
+      .case > p { margin: 0 0 0.5rem; font: 12px/1.4 ui-monospace, monospace; opacity: 0.7; }
+      #toggle {
+        position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 100;
+        display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: #d4d4d4;
+        font: 13px/1 system-ui, sans-serif;
+      }
+      #toggle button { all: unset; padding: 6px 12px; border-radius: 999px; color: #404040; cursor: pointer; }
+      #toggle button[aria-pressed="true"] { background: #fff; color: #000; }
+    </style>
+  </head>
+  <body>
+    <main class="container stack">
+      <h1>si-passage-input, worst case</h1>
+      <div id="cases"></div>
+    </main>
+    <div id="toggle" role="group" aria-label="Data"></div>
+    <script type="module">
+      import { definePassageInput } from "/src/index.ts";
+      definePassageInput();
+
+      // Each case enters data at the component's real boundaries: the value attribute,
+      // or text typed into the field (an input event, as a keystroke sends).
+      const width = 300; // the demo page's Passage column at desktop width
+      const fixtures = {
+        "Demo data": [
+          { note: "value", value: "JHN.3.16" },
+          { note: "typed", typed: "Rom" },
+          { note: "typed", typed: "Romans 8" },
+        ],
+        "Worst case": [
+          { note: "typed, no spaces between parts", typed: "Jn 3 16" },
+          { note: "typed, chapter range", typed: "Matthew 5-7" },
+          { note: "typed, reversed range", typed: "John 3:18-16" },
+          { note: "typed, longest book, 260px", typed: "Song of Solomon 8:", width: 260 },
+          { note: "typed, long book + counts, 220px", typed: "1 Thessalonians", width: 220 },
+          { note: "typed, version suffix", typed: "John 3:16 NIV" },
+          { note: "typed, Spanish book name", typed: "Juan 3:16" },
+          { note: "typed, pasted sentence", typed: "For God so loved the world, John 3:16" },
+          { note: "typed, en dash range", typed: "John 3:16–18" },
+          { note: "value, cross-chapter ID", value: "ROM.8.28-ROM.9.2" },
+          { note: "value, unknown ID", value: "XYZ.1" },
+          { note: "typed, multi-chapter ID", typed: "Ruth 1:1-4:22" },
+          { note: "value, lowercase ID", value: "rom.8" },
+          { note: "dir=rtl wrapper", typed: "Romans 8", dir: "rtl" },
+          { note: "200% text size", typed: "1 Thessalonians", zoom: true },
+          { note: "disabled", value: "PSA.23", disabled: true },
+        ],
+        Empty: [
+          { note: "typed, no match", typed: "xyz" },
+          { note: "typed, chapter out of range", typed: "Ps 151" },
+          { note: "typed, verse 0", typed: "John 3:0" },
+        ],
+        One: [
+          { note: "typed, one-chapter book", typed: "Jude" },
+          { note: "typed, one result", typed: "Phm 1" },
+        ],
+        Huge: [
+          { note: "empty, canonical (default)", typed: "" },
+          { note: "empty, book-order=alphabetical", typed: "", bookOrder: "alphabetical" },
+          { note: "typed, numbered books, alphabetical", typed: "1", bookOrder: "alphabetical" },
+          { note: "typed, 150 chapters", typed: "Ps" },
+          { note: "typed, 176 verses", typed: "Ps 119:" },
+          { note: "typed, 175 ranges", typed: "Ps 119:1-" },
+        ],
+      };
+
+      const cases = document.getElementById("cases");
+      function show(name) {
+        history.replaceState(null, "", `?data=${encodeURIComponent(name)}`);
+        for (const button of toggle.children) button.setAttribute("aria-pressed", String(button.textContent === name));
+        cases.replaceChildren(
+          ...fixtures[name].map(({ note, value, typed, width: w = width, dir, zoom, disabled, bookOrder }) => {
+            const cell = document.createElement("div");
+            cell.className = "case";
+            cell.style.width = `${w}px`;
+            if (dir) cell.dir = dir;
+            if (zoom) cell.style.fontSize = "200%";
+            const caption = document.createElement("p");
+            caption.textContent = `${note}: ${JSON.stringify(typed ?? value)}`;
+            const input = document.createElement("si-passage-input");
+            input.setAttribute("aria-label", note);
+            if (value !== undefined) input.setAttribute("value", value);
+            if (disabled) input.setAttribute("disabled", "");
+            if (bookOrder) input.setAttribute("book-order", bookOrder);
+            cell.append(caption, input);
+            if (typed !== undefined) {
+              queueMicrotask(() => {
+                const field = input.querySelector("input");
+                field.value = typed;
+                field.dispatchEvent(new Event("input"));
+              });
+            }
+            return cell;
+          }),
+        );
+      }
+
+      const toggle = document.getElementById("toggle");
+      for (const name of Object.keys(fixtures)) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = name;
+        button.addEventListener("click", () => show(name));
+        toggle.append(button);
+      }
+      show(new URLSearchParams(location.search).get("data") ?? "Demo data");
+    </script>
+  </body>
+</html>

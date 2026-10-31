@@ -1,0 +1,25 @@
+{
+  "name": "@faith-tools/scripture-inline",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Drop-in Scripture for any web page: show a passage, pick a passage, or bring every Bible reference to life.",
+  "type": "module",
+  "packageManager": "pnpm@12.16.1",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@youversion/platform-core": "^2.16.0",
+    "grab-bcv": "^0.1.7"
+  },
+  "devDependencies": {
+    "@faith-tools/sensible-ui": "1.7.0",
+    "jsdom": "^30.1.3",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5"
+  }
+}

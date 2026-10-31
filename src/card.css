@@ -1,0 +1,127 @@
+:host {
+  all: initial;
+  /* Card defaults. A page overrides them with a rule on scripture-card, which beats :host. */
+  --scripture-font-size: 17px;
+  --scripture-line-height: 1.6;
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2147483000;
+}
+
+.card {
+  --bg: #ffffff;
+  --fg: #1c1917;
+  --muted: #78716c;
+  --border: rgb(28 25 23 / 0.1);
+  --accent: #b91c1c;
+  --hover: #f0eeed;
+
+  --yv-font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  position: absolute;
+  box-sizing: border-box;
+  width: min(380px, calc(100vw - 16px));
+  max-height: min(440px, 70vh, var(--space, 100vh));
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 12px 32px -8px rgb(0 0 0 / 0.22);
+  font: 14px/1.4 var(--yv-font-sans);
+  outline: none;
+
+  /* Same curve as the text grow-in in scripture-passage. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  opacity: 0;
+  transform: translateY(var(--enter-shift, 4px)) scale(0.97);
+  transform-origin: var(--origin-x, 50%) var(--origin-y, 100%);
+  transition:
+    opacity 180ms var(--ease-out),
+    transform 180ms var(--ease-out);
+}
+
+.card[data-state="open"] {
+  opacity: 1;
+  transform: none;
+}
+
+/* Exits stay ease-out, just quicker, so the response feels immediate. */
+.card[data-state="closing"] {
+  transition-duration: 140ms;
+}
+
+@media (prefers-color-scheme: dark) {
+  .card {
+    --bg: #1f1d1c;
+    --fg: #f5f5f4;
+    --muted: #a8a29e;
+    --border: rgb(255 255 255 / 0.1);
+    --accent: #f87171;
+    --hover: #2c2a29;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transform: none;
+    transition: opacity 120ms linear;
+  }
+}
+
+.close {
+  all: unset;
+  /* Floats in the corner so the passage's own layout, not a header, leads the card. */
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    transform 160ms var(--ease-out);
+}
+
+/* Touch screens fire a false hover on tap, so only real pointers get it. */
+@media (hover: hover) and (pointer: fine) {
+  .close:hover {
+    background: var(--hover);
+    color: var(--fg);
+  }
+}
+
+.close:active {
+  transform: scale(0.95);
+}
+
+.close:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.body {
+  overflow-y: auto;
+  padding: 16px;
+  overscroll-behavior: contain;
+}
+
+/* Make room for the close button: a heading reference shares its row, and any other
+   layout starts below it. */
+.body > * > .scripture-citation:first-child {
+  padding-inline-end: 36px;
+}
+
+.body > * > :first-child:not(.scripture-citation, .scripture-loading, .scripture-stage) {
+  margin-block-start: 28px;
+}
+
