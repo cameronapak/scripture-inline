@@ -10,7 +10,7 @@ Scripture Inline has three parts:
 
 Bible text comes from the [YouVersion Platform](https://developers.youversion.com/). Scripture Inline is an independent community project. It is not affiliated with, endorsed by, or supported by YouVersion or Life.Church.
 
-> Scripture Inline is in preview and not yet published to npm. The CDN URL below works after the first release.
+> Scripture Inline is in preview. Expect changes before 1.0.
 
 ## Getting started
 
