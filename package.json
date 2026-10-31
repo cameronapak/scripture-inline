@@ -36,7 +36,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "check": "pnpm typecheck && pnpm test && pnpm build",
-    "changeset": "changeset"
+    "changeset": "changeset",
+    "version-packages": "changeset version && node scripts/sync-cdn-version.ts"
   },
   "dependencies": {
     "@youversion/platform-core": "^2.16.0",

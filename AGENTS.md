@@ -35,6 +35,6 @@ Read `CONTEXT.md` for the project's terms, and use them in code, docs, and messa
 ## Releasing
 - Merging a PR with a changeset opens or updates the Version Packages PR. Merging that PR publishes to npm with trusted publishing. There is no npm token.
 - The trusted publisher on npmjs.com is owner `cameronapak`, repo `scripture-inline`, workflow `release.yml`. Renaming the workflow file breaks publishing.
-- Pinned CDN URLs (such as `@0.1.0`) in `index.html` and `README.md` don't update automatically. Bump them in the Version Packages PR when the docs should point at the new release.
+- The Version Packages PR also bumps the pinned CDN URLs in `index.html` and `README.md`, through `scripts/sync-cdn-version.ts`. Keep new CDN URLs in that `@faith-tools/scripture-inline@X.Y.Z` form so it finds them.
 - After a release, if the CDN URL returns 404, purge jsDelivr: `https://purge.jsdelivr.net/npm/@faith-tools/scripture-inline@VERSION/dist/scripture-inline.js`.
 - Before changing `exports` or the build, run `pnpm pack` and install the tarball into a scratch Vite app with `npm install <tarball>`. pnpm 12 can't add a local tarball by path.

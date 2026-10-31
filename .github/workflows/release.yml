@@ -49,6 +49,9 @@ jobs:
           package-manager-cache: false
       - run: pnpm install --frozen-lockfile
       - uses: changesets/action/version@v2.0.0
+        with:
+          # Also bumps the pinned CDN URLs in the docs to the new version.
+          script: pnpm version-packages
 
   publish:
     if: needs.select-mode.outputs.mode == 'publish'
