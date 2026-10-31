@@ -1,0 +1,7 @@
+services:
+  docs:
+    command: pnpm dev --port "$PORT" --strictPort
+    health: /
+    portal:
+      title: Scripture Inline docs
+      description: Docs and live demos. Cards and passages need VITE_YVP_APP_KEY in the environment or .env.local.
