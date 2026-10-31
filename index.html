@@ -73,10 +73,10 @@
         <div class="demo stack">
           <div class="demo-controls stack" role="group" aria-label="Reference controls">
             <label><input type="checkbox" role="switch" id="references-on" checked />Show Scripture for references</label>
-            <div class="cluster" id="mode-picker">
-              <a class="button" data-size="sm" data-mode="card" href="?mode=card#references">Card on click</a>
-              <a class="button" data-size="sm" data-mode="card-hover" href="?mode=card&amp;trigger=hover#references">Card on hover</a>
-              <a class="button" data-size="sm" data-mode="link" href="?mode=link#references">Link</a>
+            <div class="cluster" role="group" aria-label="Reference mode" id="mode-picker">
+              <button type="button" data-size="sm" data-variant="outline" data-mode="card" data-trigger="click" aria-pressed="true">Card on click</button>
+              <button type="button" data-size="sm" data-variant="outline" data-mode="card" data-trigger="hover" aria-pressed="false">Card on hover</button>
+              <button type="button" data-size="sm" data-variant="outline" data-mode="link" aria-pressed="false">Link</button>
             </div>
           </div>
           <div id="references-demo">
@@ -313,38 +313,41 @@ scriptureInline({
       };
 
       // References: only the demo frame is scanned, so names in these docs stay plain text.
-      const params = new URLSearchParams(location.search);
-      const mode = params.get("mode") ?? "card";
-      const trigger = params.get("trigger") ?? "click";
+      // Each mode button stops the script and starts it again with the new options, without a reload.
+      let mode = "card";
+      let trigger = "click";
+      const referencesOn = document.getElementById("references-on");
+      const modes = document.getElementById("mode-picker");
       const start = () =>
-        scriptureInline({
-          mode,
-          trigger,
-          reference: params.get("reference") ?? "heading",
-          yvpPublicAppKey: appKey,
-          root: document.getElementById("references-demo"),
-        });
+        scriptureInline({ mode, trigger, yvpPublicAppKey: appKey, root: document.getElementById("references-demo") });
+      const showReferencesCode = () =>
+        showCode("references-code", "html", [
+          "<script",
+          '  src="https://cdn.jsdelivr.net/npm/@faith-tools/scripture-inline@0.1.0/dist/scripture-inline.js"',
+          '  data-yvp-public-app-key="YOUR_PUBLIC_APP_KEY"',
+          '  data-yvp-bible-version-id="3034"',
+          `  data-mode="${mode}"`,
+          ...(mode === "card" && trigger === "hover" ? ['  data-trigger="hover"'] : []),
+          "></" + "script>",
+        ]);
       // The switch stops the script, which turns the links back into plain text, and starts it again.
       let references = start();
-      document.getElementById("references-on").addEventListener("change", ({ target }) => {
-        if (target.checked) references = start();
+      referencesOn.addEventListener("change", () => {
+        if (referencesOn.checked) references = start();
         else references.stop();
-        for (const link of document.querySelectorAll("#mode-picker a")) link.toggleAttribute("inert", !target.checked);
+        for (const button of modes.querySelectorAll("button")) button.disabled = !referencesOn.checked;
       });
-      const current = mode === "link" ? "link" : trigger === "hover" ? "card-hover" : "card";
-      for (const link of document.querySelectorAll("#mode-picker a")) {
-        if (link.dataset.mode !== current) link.dataset.variant = "outline";
-        else link.setAttribute("aria-current", "true");
-      }
-      showCode("references-code", "html", [
-        "<script",
-        '  src="https://cdn.jsdelivr.net/npm/@faith-tools/scripture-inline@0.1.0/dist/scripture-inline.js"',
-        '  data-yvp-public-app-key="YOUR_PUBLIC_APP_KEY"',
-        '  data-yvp-bible-version-id="3034"',
-        `  data-mode="${mode}"`,
-        ...(mode === "card" && trigger === "hover" ? ['  data-trigger="hover"'] : []),
-        "></" + "script>",
-      ]);
+      modes.addEventListener("click", (event) => {
+        const button = event.target.closest("button[data-mode]");
+        if (!button || button.getAttribute("aria-pressed") === "true") return;
+        for (const other of modes.querySelectorAll("button")) other.setAttribute("aria-pressed", String(other === button));
+        mode = button.dataset.mode;
+        trigger = button.dataset.trigger ?? "click";
+        references.stop();
+        references = start();
+        showReferencesCode();
+      });
+      showReferencesCode();
 
       // Passage: each control sets one attribute or property, and the code shows the markup on screen.
       const showPassageCode = () =>
