@@ -1,6 +1,8 @@
 services:
   docs:
     command: pnpm dev --port "$PORT" --strictPort
+    # The same port as a plain `pnpm dev`, so earlier portal links keep working.
+    port: 5173
     health: /
     portal:
       title: Scripture Inline docs
