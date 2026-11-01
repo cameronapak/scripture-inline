@@ -103,7 +103,8 @@
             <tr><td><code>data-trigger</code><br /><code>trigger</code></td><td><code>click</code></td><td><code>hover</code> also opens cards on mouse hover.</td></tr>
             <tr><td><code>data-yvp-bible-version-id</code><br /><code>yvpBibleVersionId</code></td><td><code>3034</code></td><td>The YouVersion Bible version for cards. 3034 is the BSB.</td></tr>
             <tr><td><code>data-reference</code><br /><code>reference</code></td><td><code>heading</code></td><td>The card's reference layout, as on <a href="#passage">si-passage</a>.</td></tr>
-            <tr><td><code>root</code></td><td>Whole page</td><td>The element to look for references in.</td></tr>
+            <tr><td><code>root</code></td><td>Whole page</td><td>The element to look for references in. Leave it unset on sites that replace <code>&lt;body&gt;</code>.</td></tr>
+            <tr><td><code>watch</code></td><td><code>true</code></td><td>Also links references in content added later, such as pages that Turbo swaps in. <code>false</code> scans once. Mark content that a framework like React renders with <code>data-scripture-inline-ignore</code>.</td></tr>
           </tbody>
         </table>
         </div>

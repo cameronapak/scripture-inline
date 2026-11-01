@@ -33,7 +33,7 @@ Attributes that start with `yvp-` are YouVersion Platform settings. Passage IDs 
 
 ## Bible references
 
-The script looks for references in the page's text, including abbreviations. It skips text in `code`, `pre`, links, form fields, and anything marked `data-scripture-inline-ignore`. Links lay out exactly like the text they replace, so lines never reflow.
+The script looks for references in the page's text, including abbreviations. It skips text in `code`, `pre`, links, form fields, and anything marked `data-scripture-inline-ignore`. Links lay out exactly like the text they replace, so lines never reflow. The script keeps watching the page, so it also finds references in content that loads later, including pages that Turbo or Astro view transitions swap in. Mark content that React or another framework renders with `data-scripture-inline-ignore`, because the framework expects its text to stay as it left it.
 
 | Script tag / JavaScript | Default | Purpose |
 | --- | --- | --- |
@@ -42,7 +42,8 @@ The script looks for references in the page's text, including abbreviations. It 
 | `data-trigger` / `trigger` | `click` | `hover` also opens cards on mouse hover. |
 | `data-yvp-bible-version-id` / `yvpBibleVersionId` | `3034` | The Bible version for cards. 3034 is the Berean Standard Bible (BSB). |
 | `data-reference` / `reference` | `heading` | The card's reference layout, as on `<si-passage>`. |
-| `root` | Whole page | The element to look for references in. JavaScript only. |
+| `root` | Whole page | The element to look for references in. Leave it unset on sites that replace `<body>`. JavaScript only. |
+| `watch` | `true` | Also links references in content added later, such as pages that Turbo swaps in. `false` scans once. JavaScript only. |
 
 ## `<si-passage>`
 

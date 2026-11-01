@@ -3,7 +3,7 @@ import { findReferences } from "./find";
 
 export const REF_CLASS = "scripture-inline-ref";
 
-// Text inside these is never rewritten: it is code, a control, or already a link.
+// Text inside these is never rewritten: it is code, a control, already a link, or Scripture we render.
 const SKIP_SELECTOR = [
   "a",
   "button",
@@ -22,6 +22,9 @@ const SKIP_SELECTOR = [
   "svg",
   "math",
   "[contenteditable]",
+  // Our own components render Bible text and passage suggestions that must stay plain.
+  "si-passage",
+  "si-passage-input",
   "[data-scripture-inline-ignore]",
 ].join(",");
 
