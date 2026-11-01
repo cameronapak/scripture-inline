@@ -178,6 +178,10 @@ export function createScriptureCard({ yvpPublicAppKey, yvpBibleVersionId, refere
     hover,
     unhover,
     close,
+    /** Closes the card at once if its link left the page, as when a router swaps the body. */
+    closeIfDetached() {
+      if (anchor && !anchor.isConnected) close(true);
+    },
     /** Closes the card at once and removes its host from the page. */
     destroy() {
       close(true);

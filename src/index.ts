@@ -22,8 +22,10 @@ export type ScriptureInlineOptions = {
   yvpBibleVersionId?: number;
   /** Where a card shows the reference: "heading", "citation", "quote", or "none". Default: "heading". */
   reference?: ReferenceLayout;
-  /** Where to look for references. Default: document.body. */
+  /** Where to look for references. Default: the whole page, including a body that replaces it. */
   root?: Node;
+  /** Keep linking references in content added later, such as pages swapped in by Turbo or a router. Default: true. */
+  watch?: boolean;
 };
 
 const BSB = 3034;
@@ -61,7 +63,8 @@ export function scriptureInline({
   yvpPublicAppKey,
   yvpBibleVersionId = BSB,
   reference = "heading",
-  root = document.body,
+  root,
+  watch = true,
 }: ScriptureInlineOptions = {}): ScriptureInline {
   if (!document.getElementById("scripture-inline-styles")) {
     const style = document.createElement("style");
@@ -70,17 +73,40 @@ export function scriptureInline({
     document.head.append(style);
   }
 
-  const links = wrapReferences(root);
+  const links = wrapReferences(root ?? document.body);
   const listening = new AbortController();
   const { signal } = listening;
   let card: ReturnType<typeof createScriptureCard> | null = null;
+  // Listen on the document for the whole page, so the listeners outlive a swapped body.
+  const events = root ?? document;
 
+  const observer = new MutationObserver((records) => {
+    for (const record of records) {
+      for (const node of record.addedNodes) {
+        // For the whole page, only the body has prose. Skip what lands in <head>.
+        if (!node.isConnected || (!root && !document.body?.contains(node))) continue;
+        // A tree walker never visits its own root, so scan a new text node from its parent.
+        const scope = node.nodeType === Node.TEXT_NODE ? node.parentNode : node;
+        if (!scope) continue;
+        links.push(...wrapReferences(scope));
+        // Track links that come back already wrapped, as when Turbo restores a cached page, so stop() unwraps them.
+        if (scope instanceof Element) {
+          for (const link of scope.querySelectorAll<HTMLAnchorElement>(`a.${REF_CLASS}`)) if (!links.includes(link)) links.push(link);
+        }
+      }
+    }
+    // Drop the mutations the wrapping just made, so they don't trigger another pass.
+    observer.takeRecords();
+    // Forget links the page removed, so old pages can be garbage collected.
+    for (let i = links.length - 1; i >= 0; i--) if (!links[i].isConnected) links.splice(i, 1);
+    card?.closeIfDetached();
+  });
   if (mode === "card") {
     if (!yvpPublicAppKey) throw new Error("[scripture-inline] Card mode needs a YouVersion Platform yvpPublicAppKey.");
     const opened = (card = createScriptureCard({ yvpPublicAppKey, yvpBibleVersionId, reference }));
     const refFrom = (event: Event) => (event.target as Element).closest?.(`a.${REF_CLASS}`) as HTMLAnchorElement | null;
 
-    root.addEventListener("click", (event) => {
+    events.addEventListener("click", (event) => {
       const mouse = event as MouseEvent;
       // Let modified clicks open route.bible as a normal link.
       if (mouse.metaKey || mouse.ctrlKey || mouse.shiftKey || mouse.altKey || mouse.button !== 0) return;
@@ -91,19 +117,22 @@ export function scriptureInline({
     }, { signal });
 
     if (trigger === "hover") {
-      root.addEventListener("pointerover", (event) => {
+      events.addEventListener("pointerover", (event) => {
         const link = refFrom(event);
         if (link && (event as PointerEvent).pointerType === "mouse") opened.hover(link);
       }, { signal });
-      root.addEventListener("pointerout", (event) => {
+      events.addEventListener("pointerout", (event) => {
         if (refFrom(event)) opened.unhover(event as PointerEvent);
       }, { signal });
     }
   }
 
+  if (watch) observer.observe(root ?? document.documentElement, { childList: true, subtree: true });
+
   return {
     links,
     stop() {
+      observer.disconnect();
       listening.abort();
       card?.destroy();
       unwrapReferences(links);

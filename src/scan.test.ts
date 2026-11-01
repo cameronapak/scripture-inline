@@ -7,7 +7,8 @@ describe("wrapReferences", () => {
     document.body.innerHTML = `
       <p>Read <em>John 3:16</em> and Rom 8:28-30 today.</p>
       <pre>John 3:16</pre>
-      <a href="/x">Gen 1:1</a>`;
+      <a href="/x">Gen 1:1</a>
+      <si-passage><h2>Psalm 23</h2></si-passage>`;
 
     const links = wrapReferences(document.body);
 
